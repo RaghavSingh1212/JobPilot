@@ -1,10 +1,18 @@
 {
-  "name": "job-application-copilot-extension",
+  "name": "jobpilot",
   "version": "0.1.0",
-  "description": "A selective browser extension that scores job fit, gates poor matches, and assists with truthful application autofill.",
+  "description": "A Next.js job search copilot that parses resumes, discovers jobs, ranks matches, and drafts tailored application answers.",
   "type": "commonjs",
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "test": "node --test"
+  },
+  "dependencies": {
+    "next": "^15.4.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {}
 }

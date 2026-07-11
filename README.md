@@ -1,41 +1,46 @@
 # JobPilot
 
-A local Chrome extension that discovers early-career software roles, ranks them against your search profile, uses your resume to autofill ATS applications, and optionally uses an LLM to draft tailored application answers without ever submitting for you.
+A Next.js job search copilot that discovers early-career software roles, ranks them against your profile, parses your resume into structured data, and optionally uses an LLM to draft tailored application answers.
 
 ## What works
 
-- Extracts job title, company, location, salary hints, employment type, and description from live posting pages.
-- Scores the posting against enabled search profiles.
+- Runs as a Next.js app with API routes for discovery and LLM drafting.
+- Parses resume text into a structured profile: experience, education, skills, summary, and contact details.
+- Scores jobs against enabled search profiles.
 - Applies hard filters for required keywords, excluded keywords, seniority, maximum experience requirement, location, employment type, and salary minimum.
-- Keeps matching and autofill separate, so a strict score never blocks you from filling the current application.
-- Imports resume text into a structured local profile: experience, education, skills, summary, and contact details.
-- Fills common Greenhouse, Lever, and Ashby fields from your local profile and saved answers.
-- Drafts basic answers for fields like "why this company" and AI experience from your resume/profile and job description.
+- Keeps profile matching separate from application decisions, so you can review jobs manually.
 - Optionally calls an OpenAI-compatible LLM endpoint to generate tailored "why company", AI experience, cover note, match summary, and keyword drafts.
 - Discovers jobs from configured public Greenhouse, Lever, and Ashby company boards and ranks them.
 - Discovers new-grad and internship roles from the SimplifyJobs GitHub lists, similar to SWEList.
 - Optionally searches the broader web from your enabled search profiles through SerpAPI or Google Custom Search, then normalizes and ranks those results with the same matching engine.
-- Shows an on-page review overlay listing unknown fields before you submit anything.
-- Tracks scanned/application candidates in local extension storage.
+- Stores local app state in browser localStorage during development.
 
-## Install locally
+## Run locally
 
-1. Open Chrome or Edge.
-2. Go to `chrome://extensions`.
-3. Enable Developer Mode.
-4. Click "Load unpacked".
-5. Select this folder: `/Users/raghavsingh/Copilot`.
+```bash
+npm install
+npm run dev
+```
+
+Then open `http://localhost:3000`.
 
 ## Use
 
-1. Open the extension settings and fill in your candidate profile.
-2. Paste resume text or upload a text resume and click "Create profile".
-3. Fill the Application Answers section for legal, school, preference, and voluntary EEO questions.
-4. Edit or add search profiles for the job types you actually want.
-5. Enable the New-grad or Internship feed, add company sources or Web Job Search if you want broader results, and click "Run discovery".
-6. Optional: enable AI Drafting, add an OpenAI-compatible API key/model endpoint, paste a target job description, and generate tailored application drafts.
-7. Open a discovered job, click the extension icon, and choose "Autofill application".
-8. Review the page yourself, attach required files, complete unknown fields, and submit manually only if everything is true.
+1. Open the Profile tab and paste resume text.
+2. Parse the resume into a structured candidate profile.
+3. Open Search and configure web-search or ATS discovery settings.
+4. Click "Find jobs" to run discovery through the Next.js API route.
+5. Review ranked jobs in the Jobs tab.
+6. Add an OpenAI-compatible API key in Drafts, select a job, and generate tailored answers.
+
+## APIs Used
+
+- Greenhouse Board API for public Greenhouse job boards.
+- Lever Postings API for Lever-hosted roles.
+- Ashby Job Board API for Ashby-hosted roles.
+- SimplifyJobs GitHub README feeds for new-grad and internship lists.
+- SerpAPI or Google Custom Search API for broader web discovery.
+- OpenAI-compatible Chat Completions API for tailored application drafts.
 
 ## Company Sources
 
@@ -49,7 +54,7 @@ Paste JSON like this into the Company Sources box:
 ]
 ```
 
-The extension also schedules discovery about twice per day with Chrome alarms. Use "Run discovery" for manual runs.
+The Next app calls these sources from `/api/discover` when you click "Find jobs".
 
 ## New-Grad and Internship Feed
 
@@ -66,21 +71,21 @@ Web Job Search is optional and needs either a SerpAPI key or a Google Custom Sea
 
 ## LLM Layer
 
-The LLM integration is deliberately a drafting layer, not an autopilot. It builds a compact prompt from your local profile and the target job description, asks for strict JSON, and stores the generated answers back into your editable Application Answers fields. This makes the project more than normal CRUD/web UI work: it combines resume parsing, retrieval from public job feeds, ATS-specific DOM automation, deterministic matching, and guarded LLM generation.
+The LLM integration is deliberately a drafting layer, not an autopilot. It builds a compact prompt from your local profile and the target job description, asks for strict JSON, and returns editable drafts. This makes the project more than normal CRUD/web UI work: it combines resume parsing, retrieval from public job feeds, deterministic matching, profile-driven web search, and guarded LLM generation.
 
 ## Safety rules
 
-This extension does not click submit. It cannot silently attach local resume files because browsers block programmatic file upload for security. It flags unknown or sensitive fields for review. Matching is deterministic and used for ranking/recommendations, while autofill remains available for the current page so you can decide after review.
+JobPilot does not submit applications for you. It ranks jobs, opens application links, and drafts text for review. Matching is deterministic and used for ranking/recommendations, while LLM output is kept as editable draft content.
 
 ## Resume / Interview Framing
 
-**Job Application Copilot | AI-powered Chrome Extension**
+**JobPilot | AI-powered Job Discovery Platform**
 
-Built a local MV3 Chrome extension that turns a resume into a structured candidate profile, discovers new-grad/internship roles from ATS boards and SimplifyJobs feeds, ranks opportunities with deterministic fit rules, and autofills Greenhouse, Lever, and Ashby applications while preserving a manual submit boundary.
+Built a Next.js job discovery platform that turns a resume into a structured candidate profile, discovers new-grad/internship roles from ATS APIs, SimplifyJobs feeds, and profile-based web search, then ranks opportunities with deterministic fit rules.
 
 Integrated an optional OpenAI-compatible LLM drafting layer that generates tailored "why company", AI experience, cover-note, match-summary, and keyword suggestions from the candidate profile plus job description, with JSON-constrained outputs and editable review before reuse.
 
-**Tech:** JavaScript, Chrome Extension MV3, content scripts, service workers, Chrome Storage, DOM automation, ATS APIs, OpenAI-compatible chat completions, deterministic scoring, resume parsing.
+**Tech:** Next.js, React, JavaScript, Next API routes, localStorage, Greenhouse Board API, Lever Postings API, Ashby Job Board API, SimplifyJobs feeds, SerpAPI / Google Custom Search, OpenAI-compatible chat completions, deterministic scoring, resume parsing.
 
 ## Verify
 
