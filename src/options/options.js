@@ -13,7 +13,7 @@ function textToList(value) {
 }
 
 function load() {
-  chrome.storage.local.get(["profile", "searchProfiles", "answers", "applications", "companySources", "simplifySources", "digestSettings", "aiSettings", "discoveredJobs", "todayJobs", "lastDiscoveryAt"], (stored) => {
+  chrome.storage.local.get(["profile", "searchProfiles", "answers", "applications", "companySources", "simplifySources", "webSearchSettings", "digestSettings", "aiSettings", "discoveredJobs", "todayJobs", "lastDiscoveryAt"], (stored) => {
     state = {
       ...structuredClone(window.JobCopilotDefaults),
       ...stored,
@@ -30,6 +30,10 @@ function load() {
       applications: stored.applications || [],
       companySources: stored.companySources || window.JobCopilotDefaults.companySources,
       simplifySources: stored.simplifySources || window.JobCopilotDefaults.simplifySources,
+      webSearchSettings: {
+        ...window.JobCopilotDefaults.webSearchSettings,
+        ...(stored.webSearchSettings || {})
+      },
       digestSettings: {
         ...window.JobCopilotDefaults.digestSettings,
         ...(stored.digestSettings || {})
@@ -54,11 +58,26 @@ function render() {
   renderGeneratedProfile();
   renderApplicationAnswers();
   renderSources();
+  renderWebSearchSettings();
   renderDigestSettings();
   renderAiSettings();
   renderTodayDigest();
   renderDiscoveredJobs();
   renderApplications();
+}
+
+function renderWebSearchSettings() {
+  const settings = state.webSearchSettings || {};
+  document.getElementById("webSearchEnabled").checked = Boolean(settings.enabled);
+  document.getElementById("webSearchProvider").value = settings.provider || "serpapi";
+  document.getElementById("webSearchApiKey").value = settings.apiKey || "";
+  document.getElementById("webSearchEngineId").value = settings.searchEngineId || "";
+  document.getElementById("webResultsPerQuery").value = settings.resultsPerQuery || 10;
+  document.getElementById("webMaxQueries").value = settings.maxQueries || 8;
+  document.getElementById("webFreshnessDays").value = settings.freshnessDays ?? 14;
+  document.getElementById("webIncludeQueries").value = listToText(settings.includeQueries || []);
+  document.getElementById("webPreferredSites").value = listToText(settings.preferredSites || []);
+  document.getElementById("webExcludedSites").value = listToText(settings.excludedSites || []);
 }
 
 function renderAiSettings() {
@@ -261,6 +280,18 @@ function save(afterSave) {
     return;
   }
   state.simplifySources = updateSimplifySourcesFromForm(state.simplifySources || window.JobCopilotDefaults.simplifySources);
+  state.webSearchSettings = {
+    enabled: document.getElementById("webSearchEnabled").checked,
+    provider: document.getElementById("webSearchProvider").value,
+    apiKey: document.getElementById("webSearchApiKey").value.trim(),
+    searchEngineId: document.getElementById("webSearchEngineId").value.trim(),
+    resultsPerQuery: Number(document.getElementById("webResultsPerQuery").value || 10),
+    maxQueries: Number(document.getElementById("webMaxQueries").value || 8),
+    freshnessDays: Number(document.getElementById("webFreshnessDays").value || 0),
+    includeQueries: textToList(document.getElementById("webIncludeQueries").value),
+    preferredSites: textToList(document.getElementById("webPreferredSites").value),
+    excludedSites: textToList(document.getElementById("webExcludedSites").value)
+  };
   state.digestSettings = {
     recipientEmail: document.getElementById("digestEmail").value || state.profile.email || "",
     maxJobsInEmail: Number(document.getElementById("digestMaxJobs").value || 60),
@@ -281,6 +312,7 @@ function save(afterSave) {
     applications: state.applications,
     companySources: state.companySources,
     simplifySources: state.simplifySources,
+    webSearchSettings: state.webSearchSettings,
     digestSettings: state.digestSettings,
     aiSettings: state.aiSettings,
     discoveredJobs: state.discoveredJobs,

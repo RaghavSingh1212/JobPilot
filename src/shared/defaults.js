@@ -86,6 +86,29 @@
         maxAgeDays: 14
       }
     ],
+    webSearchSettings: {
+      enabled: false,
+      provider: "serpapi",
+      apiKey: "",
+      searchEngineId: "",
+      resultsPerQuery: 10,
+      maxQueries: 8,
+      freshnessDays: 14,
+      includeQueries: [
+        "software engineer new grad jobs",
+        "backend engineer new grad jobs",
+        "AI engineer new grad jobs",
+        "software engineer internship jobs"
+      ],
+      excludedSites: ["linkedin.com", "indeed.com", "glassdoor.com"],
+      preferredSites: [
+        "jobs.lever.co",
+        "boards.greenhouse.io",
+        "job-boards.greenhouse.io",
+        "jobs.ashbyhq.com",
+        "workdayjobs.com"
+      ]
+    },
     digestSettings: {
       recipientEmail: "",
       includeOnlyStrongMatches: false,

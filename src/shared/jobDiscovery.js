@@ -86,12 +86,47 @@
     return scoreJobs(dedupeJobs(jobs), profiles, matcher);
   }
 
-  async function discoverAll({ companySources = [], simplifySources = [], profiles = [], matcher }) {
-    const [companyJobs, simplifyJobs] = await Promise.all([
+  async function fetchWebSearchSource(settings, query) {
+    if (!settings.enabled || !settings.apiKey || !query) return [];
+    if (settings.provider === "google-cse") {
+      const url = new URL("https://www.googleapis.com/customsearch/v1");
+      url.searchParams.set("key", settings.apiKey);
+      url.searchParams.set("cx", settings.searchEngineId || "");
+      url.searchParams.set("q", query);
+      url.searchParams.set("num", String(Math.min(Number(settings.resultsPerQuery || 10), 10)));
+      if (settings.freshnessDays) url.searchParams.set("dateRestrict", `d${Number(settings.freshnessDays)}`);
+      const response = await fetch(url.toString());
+      const data = await response.json();
+      return (data.items || []).map((item) => normalizeWebSearchResult(settings, item, query, "google-cse"));
+    }
+
+    const url = new URL("https://serpapi.com/search.json");
+    url.searchParams.set("engine", "google");
+    url.searchParams.set("api_key", settings.apiKey);
+    url.searchParams.set("q", query);
+    url.searchParams.set("num", String(Number(settings.resultsPerQuery || 10)));
+    if (settings.freshnessDays) url.searchParams.set("tbs", `qdr:d${Number(settings.freshnessDays)}`);
+    const response = await fetch(url.toString());
+    const data = await response.json();
+    return (data.organic_results || []).map((item) => normalizeWebSearchResult(settings, item, query, "serpapi"));
+  }
+
+  async function discoverWebJobs(settings = {}, profiles = [], matcher) {
+    if (!settings.enabled || !settings.apiKey) return [];
+    if (settings.provider === "google-cse" && !settings.searchEngineId) return [];
+    const queries = buildWebSearchQueries(settings, profiles);
+    const batches = await Promise.allSettled(queries.map((query) => fetchWebSearchSource(settings, query)));
+    const jobs = batches.flatMap((batch) => batch.status === "fulfilled" ? batch.value : []);
+    return scoreJobs(dedupeJobs(jobs), profiles, matcher);
+  }
+
+  async function discoverAll({ companySources = [], simplifySources = [], webSearchSettings = {}, profiles = [], matcher }) {
+    const [companyJobs, simplifyJobs, webJobs] = await Promise.all([
       discoverJobs(companySources, profiles, matcher),
-      discoverSimplifyJobs(simplifySources, profiles, matcher)
+      discoverSimplifyJobs(simplifySources, profiles, matcher),
+      discoverWebJobs(webSearchSettings, profiles, matcher)
     ]);
-    return dedupeJobs([...companyJobs, ...simplifyJobs]).sort((a, b) => b.score - a.score);
+    return dedupeJobs([...companyJobs, ...simplifyJobs, ...webJobs]).sort((a, b) => b.score - a.score);
   }
 
   function scoreJobs(jobs, profiles, matcher) {
@@ -192,6 +227,110 @@
     return jobs;
   }
 
+  function buildWebSearchQueries(settings = {}, profiles = []) {
+    const manual = splitSearchLines(settings.includeQueries);
+    const generated = [];
+    const enabledProfiles = (profiles || []).filter((profile) => profile.enabled !== false);
+    for (const profile of enabledProfiles) {
+      const titles = splitSearchLines(profile.desiredTitles).slice(0, 3);
+      const locations = splitSearchLines(profile.locations).slice(0, 3);
+      const keywords = splitSearchLines(profile.preferredKeywords).slice(0, 3);
+      for (const title of titles) {
+        const location = locations[0] && !/^remote$/i.test(locations[0]) ? ` ${locations[0]}` : "";
+        const keyword = keywords[0] ? ` ${keywords[0]}` : "";
+        generated.push(`${title}${keyword}${location} job apply`);
+        generated.push(`${title} new grad ${location} careers`);
+      }
+    }
+
+    const siteTerms = splitSearchLines(settings.preferredSites)
+      .map((site) => `site:${site}`)
+      .join(" OR ");
+    const excluded = splitSearchLines(settings.excludedSites)
+      .map((site) => `-site:${site}`)
+      .join(" ");
+    const withSites = unique([...manual, ...generated])
+      .filter(Boolean)
+      .map((query) => [query, siteTerms ? `(${siteTerms})` : "", excluded].filter(Boolean).join(" "));
+
+    return unique(withSites).slice(0, Number(settings.maxQueries || 8));
+  }
+
+  function normalizeWebSearchResult(settings, item, query, provider) {
+    const url = item.link || item.formattedUrl || "";
+    const titleText = item.title || "";
+    const snippet = item.snippet || item.description || "";
+    const parsed = parseSearchResultTitle(titleText, url);
+    return {
+      externalId: `${provider}:${url || titleText}`,
+      company: parsed.company,
+      platform: provider,
+      source: "web-search",
+      title: parsed.title || titleText,
+      location: "",
+      employmentType: inferEmploymentType(`${titleText} ${snippet} ${query}`),
+      url,
+      age: item.date || item.displayed_link || "",
+      searchQuery: query,
+      description: htmlToText(`${titleText}. ${snippet}. ${query}`)
+    };
+  }
+
+  function parseSearchResultTitle(title, url = "") {
+    const clean = htmlToText(title).replace(/\s+-\s+Careers?$/i, "").trim();
+    const parts = clean.split(/\s+[-|]\s+/).map((part) => part.trim()).filter(Boolean);
+    const host = hostCompany(url);
+    if (parts.length >= 2) {
+      const first = parts[0];
+      const last = parts[parts.length - 1];
+      const company = /job|engineer|developer|intern|new grad|software/i.test(first) ? last : first;
+      const role = company === first ? parts.slice(1).join(" - ") : parts.slice(0, -1).join(" - ");
+      return { company: company || host, title: role || clean };
+    }
+    return { company: host, title: clean };
+  }
+
+  function hostCompany(url) {
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, "");
+      const parts = host.split(".");
+      if (host.includes("greenhouse.io") || host.includes("lever.co") || host.includes("ashbyhq.com")) {
+        return parts[0] === "jobs" || parts[0] === "boards" || parts[0] === "job-boards" ? parts[1] || "" : parts[0];
+      }
+      return parts[0] || "";
+    } catch {
+      return "";
+    }
+  }
+
+  function inferEmploymentType(text) {
+    const clean = String(text || "").toLowerCase();
+    if (/intern|internship/.test(clean)) return "Internship";
+    if (/part[-\s]?time/.test(clean)) return "Part-time";
+    return "Full-time";
+  }
+
+  function splitSearchLines(value) {
+    if (Array.isArray(value)) return value.map(String).map((item) => item.trim()).filter(Boolean);
+    return String(value || "")
+      .split(/[\n,]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  function unique(items) {
+    const seen = new Set();
+    const result = [];
+    for (const item of items) {
+      const clean = String(item || "").trim();
+      const key = clean.toLowerCase();
+      if (!clean || seen.has(key)) continue;
+      seen.add(key);
+      result.push(clean);
+    }
+    return result;
+  }
+
   function splitMarkdownRow(row) {
     return row
       .replace(/^\|/, "")
@@ -278,9 +417,14 @@
   const api = {
     discoverJobs,
     discoverSimplifyJobs,
+    discoverWebJobs,
     discoverAll,
     fetchSource,
     fetchSimplifySource,
+    fetchWebSearchSource,
+    buildWebSearchQueries,
+    normalizeWebSearchResult,
+    parseSearchResultTitle,
     parseSimplifyMarkdown,
     parseSimplifyHtmlTables,
     isTodayJob,

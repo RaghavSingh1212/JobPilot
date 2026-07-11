@@ -135,6 +135,23 @@
       </section>
 
       <section>
+        <h2>Web Job Search</h2>
+        <div class="grid">
+          <label><span><input id="webSearchEnabled" type="checkbox"> Search the web from my profile</span></label>
+          <label>Provider<select id="webSearchProvider"><option value="serpapi">SerpAPI</option><option value="google-cse">Google Custom Search</option></select></label>
+          <label>Results per query<input id="webResultsPerQuery" type="number" min="1" max="20"></label>
+          <label>Max queries<input id="webMaxQueries" type="number" min="1" max="30"></label>
+          <label>Freshness days<input id="webFreshnessDays" type="number" min="0"></label>
+          <label class="wide">Search API key<input id="webSearchApiKey" type="password" autocomplete="off"></label>
+          <label class="wide">Google search engine ID<input id="webSearchEngineId"></label>
+          <label class="wide">Extra search queries<textarea id="webIncludeQueries"></textarea></label>
+          <label class="wide">Preferred sites<textarea id="webPreferredSites"></textarea></label>
+          <label class="wide">Excluded sites<textarea id="webExcludedSites"></textarea></label>
+        </div>
+        <p class="hint">Uses your enabled Search Profiles to generate queries, then ranks web results beside ATS and Simplify jobs.</p>
+      </section>
+
+      <section>
         <div class="section-head">
           <h2>Today’s Digest</h2>
           <div class="actions">

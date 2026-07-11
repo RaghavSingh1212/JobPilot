@@ -1,7 +1,7 @@
 importScripts("shared/defaults.js", "shared/matcher.js", "shared/jobDiscovery.js", "shared/llmAssistant.js");
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.get(["profile", "searchProfiles", "companySources", "simplifySources"], (stored) => {
+  chrome.storage.local.get(["profile", "searchProfiles", "companySources", "simplifySources", "webSearchSettings"], (stored) => {
     if (!stored.searchProfiles) {
       chrome.storage.local.set(structuredClone(globalThis.JobCopilotDefaults));
       return;
@@ -9,6 +9,7 @@ chrome.runtime.onInstalled.addListener(() => {
     const patch = {};
     if (!stored.companySources) patch.companySources = globalThis.JobCopilotDefaults.companySources;
     if (!stored.simplifySources) patch.simplifySources = globalThis.JobCopilotDefaults.simplifySources;
+    if (!stored.webSearchSettings) patch.webSearchSettings = globalThis.JobCopilotDefaults.webSearchSettings;
     if (!stored.profile?.applicationAnswers) {
       patch.profile = {
         ...globalThis.JobCopilotDefaults.profile,
@@ -59,13 +60,18 @@ async function generateAiDrafts(payload = {}) {
 }
 
 async function runDiscovery() {
-  const stored = await chrome.storage.local.get(["companySources", "simplifySources", "searchProfiles", "discoveredJobs"]);
+  const stored = await chrome.storage.local.get(["companySources", "simplifySources", "webSearchSettings", "searchProfiles", "discoveredJobs"]);
   const sources = stored.companySources || globalThis.JobCopilotDefaults.companySources;
   const simplifySources = stored.simplifySources || globalThis.JobCopilotDefaults.simplifySources;
+  const webSearchSettings = {
+    ...globalThis.JobCopilotDefaults.webSearchSettings,
+    ...(stored.webSearchSettings || {})
+  };
   const profiles = stored.searchProfiles || globalThis.JobCopilotDefaults.searchProfiles;
   const jobs = await globalThis.JobCopilotDiscovery.discoverAll({
     companySources: sources,
     simplifySources,
+    webSearchSettings,
     profiles,
     matcher: globalThis.JobCopilotMatcher
   });

@@ -14,6 +14,7 @@ A local Chrome extension that discovers early-career software roles, ranks them 
 - Optionally calls an OpenAI-compatible LLM endpoint to generate tailored "why company", AI experience, cover note, match summary, and keyword drafts.
 - Discovers jobs from configured public Greenhouse, Lever, and Ashby company boards and ranks them.
 - Discovers new-grad and internship roles from the SimplifyJobs GitHub lists, similar to SWEList.
+- Optionally searches the broader web from your enabled search profiles through SerpAPI or Google Custom Search, then normalizes and ranks those results with the same matching engine.
 - Shows an on-page review overlay listing unknown fields before you submit anything.
 - Tracks scanned/application candidates in local extension storage.
 
@@ -31,7 +32,7 @@ A local Chrome extension that discovers early-career software roles, ranks them 
 2. Paste resume text or upload a text resume and click "Create profile".
 3. Fill the Application Answers section for legal, school, preference, and voluntary EEO questions.
 4. Edit or add search profiles for the job types you actually want.
-5. Enable the New-grad or Internship feed, add company sources if you want, and click "Run discovery".
+5. Enable the New-grad or Internship feed, add company sources or Web Job Search if you want broader results, and click "Run discovery".
 6. Optional: enable AI Drafting, add an OpenAI-compatible API key/model endpoint, paste a target job description, and generate tailored application drafts.
 7. Open a discovered job, click the extension icon, and choose "Autofill application".
 8. Review the page yourself, attach required files, complete unknown fields, and submit manually only if everything is true.
@@ -58,6 +59,10 @@ The settings page includes SimplifyJobs feeds:
 - Internships: `SimplifyJobs/Summer2026-Internships`
 
 Set "max age days" to control freshness. For example, `3` shows roles marked around 0d-3d old, while `14` gives a wider list.
+
+## Web Job Search
+
+Web Job Search is optional and needs either a SerpAPI key or a Google Custom Search API key plus search engine ID. JobPilot generates search queries from enabled Search Profiles, combines them with any extra queries you add, prefers direct career/ATS domains, excludes noisy aggregator sites, and converts search results into the same job format used by Greenhouse, Lever, Ashby, and Simplify.
 
 ## LLM Layer
 

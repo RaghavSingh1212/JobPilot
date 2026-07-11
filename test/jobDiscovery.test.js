@@ -91,3 +91,49 @@ test("parses current SimplifyJobs HTML table rows", () => {
   assert.equal(jobs[1].company, "Pylon");
   assert.equal(jobs[1].url, "https://job-boards.greenhouse.io/pylon/jobs/123?utm_source=Simplify&ref=Simplify");
 });
+
+test("builds profile-based web search queries with preferred and excluded sites", () => {
+  const queries = discovery.buildWebSearchQueries(
+    {
+      includeQueries: ["new grad software engineer"],
+      preferredSites: ["jobs.lever.co", "jobs.ashbyhq.com"],
+      excludedSites: ["linkedin.com"],
+      maxQueries: 4
+    },
+    [
+      {
+        enabled: true,
+        desiredTitles: ["Backend Engineer"],
+        preferredKeywords: ["Python"],
+        locations: ["Remote"]
+      }
+    ]
+  );
+
+  assert.equal(queries.length, 3);
+  assert.match(queries[0], /new grad software engineer/);
+  assert.match(queries[0], /site:jobs\.lever\.co/);
+  assert.match(queries[0], /-site:linkedin\.com/);
+  assert.match(queries[1], /Backend Engineer Python job apply/);
+});
+
+test("normalizes web search results into scored job shape", () => {
+  const job = discovery.normalizeWebSearchResult(
+    {},
+    {
+      title: "Software Engineer, New Grad - Acme",
+      link: "https://jobs.ashbyhq.com/acme/123",
+      snippet: "Build backend APIs with Python. Apply now.",
+      displayed_link: "jobs.ashbyhq.com"
+    },
+    "software engineer new grad jobs",
+    "serpapi"
+  );
+
+  assert.equal(job.platform, "serpapi");
+  assert.equal(job.source, "web-search");
+  assert.equal(job.company, "Acme");
+  assert.equal(job.title, "Software Engineer, New Grad");
+  assert.equal(job.employmentType, "Full-time");
+  assert.match(job.description, /Python/);
+});
