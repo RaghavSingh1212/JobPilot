@@ -1,4 +1,4 @@
-# Job Application Copilot
+# JobPilot
 
 A local Chrome extension that discovers early-career software roles, ranks them against your search profile, uses your resume to autofill ATS applications, and optionally uses an LLM to draft tailored application answers without ever submitting for you.
 
