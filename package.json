@@ -1,0 +1,10 @@
+{
+  "name": "job-application-copilot-extension",
+  "version": "0.1.0",
+  "description": "A selective browser extension that scores job fit, gates poor matches, and assists with truthful application autofill.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {}
+}

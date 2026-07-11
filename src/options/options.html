@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Job Copilot Settings</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Job Copilot Settings</h1>
+        <button id="save" type="button">Save</button>
+      </header>
+
+      <section>
+        <h2>Candidate Profile</h2>
+        <div class="grid">
+          <label>Full name<input id="fullName"></label>
+          <label>Email<input id="email" type="email"></label>
+          <label>Phone<input id="phone"></label>
+          <label>City / state<input id="cityState"></label>
+          <label>LinkedIn<input id="linkedin"></label>
+          <label>GitHub<input id="github"></label>
+          <label>Portfolio<input id="portfolio"></label>
+          <label>Minimum salary<input id="salaryMinimum" type="number" min="0" step="1000"></label>
+          <label>Headline<input id="headline"></label>
+        </div>
+        <label class="wide">Summary<textarea id="summary"></textarea></label>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Resume Import</h2>
+          <button id="parseResume" type="button">Create profile</button>
+        </div>
+        <div class="grid">
+          <label>Upload resume text file<input id="resumeFile" type="file" accept=".txt,.md,.text,.json,.pdf"></label>
+          <label class="wide">Or paste resume text<textarea id="resumeText" placeholder="Paste resume text here"></textarea></label>
+        </div>
+        <p class="hint">Text, Markdown, and JSON files can be parsed directly. For PDFs, paste copied resume text here unless Chrome exposes readable text from the file.</p>
+      </section>
+
+      <section>
+        <h2>Generated Profile</h2>
+        <div class="profile-lists">
+          <article>
+            <h3>Skills</h3>
+            <textarea id="skills"></textarea>
+          </article>
+          <article>
+            <h3>Experience</h3>
+            <div id="experience"></div>
+            <button id="addExperience" type="button">Add experience</button>
+          </article>
+          <article>
+            <h3>Education</h3>
+            <div id="education"></div>
+            <button id="addEducation" type="button">Add education</button>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Application Answers</h2>
+        <div class="grid">
+          <label>Pronouns<input data-answer="pronouns"></label>
+          <label>Authorized to work in US<input data-answer="authorizedToWorkUS"></label>
+          <label>Sponsorship now<input data-answer="sponsorshipNow"></label>
+          <label>Sponsorship future<input data-answer="sponsorshipFuture"></label>
+          <label>Visa status<input data-answer="visaStatus"></label>
+          <label>Willing to relocate<input data-answer="willingToRelocate"></label>
+          <label>Office anchor days<input data-answer="officeAnchorDays"></label>
+          <label>How heard<input data-answer="howHeard"></label>
+          <label>Prior internships<input data-answer="priorInternships"></label>
+          <label>LLM experience<input data-answer="hasLLMExperience"></label>
+          <label>LLM project<input data-answer="hasLLMProject"></label>
+          <label>Graduation year<input data-answer="graduationYear"></label>
+          <label>Graduation date<input data-answer="graduationDate"></label>
+          <label>Degree type<input data-answer="degreeType"></label>
+          <label>GPA<input data-answer="gpa"></label>
+          <label>Cohort start date<input data-answer="cohortStartDate"></label>
+          <label>Research proposal link<input data-answer="researchProposalLink"></label>
+          <label>Previous work links<input data-answer="previousWorkLinks"></label>
+          <label>Privacy acknowledgement<input data-answer="privacyAcknowledgement"></label>
+          <label>SMS/WhatsApp consent<input data-answer="smsConsent"></label>
+          <label>Gender<input data-answer="gender"></label>
+          <label>Transgender<input data-answer="transgender"></label>
+          <label>Hispanic/Latinx<input data-answer="hispanicLatinx"></label>
+          <label>Race<input data-answer="race"></label>
+          <label>Veteran status<input data-answer="veteranStatus"></label>
+          <label>Disability status<input data-answer="disabilityStatus"></label>
+          <label class="wide">AI experience<textarea data-answer="aiExperience"></textarea></label>
+          <label class="wide">AI technologies<textarea data-answer="aiTechnologies"></textarea></label>
+          <label class="wide">Why company default<textarea data-answer="whyCompany"></textarea></label>
+          <label class="wide">Languages<textarea data-answer="languages"></textarea></label>
+          <label class="wide">Preferred locations<textarea data-answer="preferredLocations"></textarea></label>
+          <label class="wide">Palantir products<textarea data-answer="palantirProductPreference"></textarea></label>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>AI Drafting</h2>
+          <button id="generateAiDrafts" type="button">Generate drafts</button>
+        </div>
+        <div class="grid">
+          <label><span><input id="aiEnabled" type="checkbox"> Enable LLM drafts</span></label>
+          <label>Model<input id="aiModel"></label>
+          <label>Endpoint<input id="aiEndpoint"></label>
+          <label>Temperature<input id="aiTemperature" type="number" min="0" max="1" step="0.1"></label>
+          <label class="wide">API key<input id="aiApiKey" type="password" autocomplete="off"></label>
+          <label class="wide">Tone<input id="aiTone"></label>
+          <label>Target company<input id="aiJobCompany"></label>
+          <label>Target role<input id="aiJobTitle"></label>
+          <label class="wide">Job description<textarea id="aiJobDescription"></textarea></label>
+          <label class="wide">AI match summary<textarea id="aiMatchSummary" readonly></textarea></label>
+        </div>
+        <p class="hint">Drafts are saved locally for review and reuse. The extension still leaves final submission to you.</p>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Company Sources</h2>
+          <button id="runDiscovery" type="button">Run discovery</button>
+        </div>
+        <div class="grid">
+          <label><span><input id="newGradEnabled" type="checkbox"> New-grad feed</span></label>
+          <label>New-grad max age days<input id="newGradMaxAge" type="number" min="0"></label>
+          <label><span><input id="internshipEnabled" type="checkbox"> Internship feed</span></label>
+          <label>Internship max age days<input id="internshipMaxAge" type="number" min="0"></label>
+        </div>
+        <label class="wide">Sources JSON<textarea id="companySources"></textarea></label>
+        <p class="hint">Use platform values: greenhouse, lever, ashby. Example: {"company":"Notion","platform":"ashby","slug":"notion","enabled":true}</p>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Today’s Digest</h2>
+          <div class="actions">
+            <button id="copyDigest" type="button">Copy digest</button>
+            <button id="emailDigest" type="button">Email draft</button>
+          </div>
+        </div>
+        <div class="grid">
+          <label>Email recipient<input id="digestEmail" type="email"></label>
+          <label>Max jobs in email<input id="digestMaxJobs" type="number" min="1" max="200"></label>
+          <label><span><input id="digestStrongOnly" type="checkbox"> Only strong matches</span></label>
+        </div>
+        <p id="todayDigestSummary" class="hint"></p>
+        <table>
+          <thead>
+            <tr><th>Score</th><th>Company</th><th>Role</th><th>Age</th><th>Link</th></tr>
+          </thead>
+          <tbody id="todayJobs"></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Discovered Jobs</h2>
+        <p id="lastDiscovery" class="hint"></p>
+        <table>
+          <thead>
+            <tr><th>Score</th><th>Company</th><th>Role</th><th>Platform</th><th>Link</th></tr>
+          </thead>
+          <tbody id="discoveredJobs"></tbody>
+        </table>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Search Profiles</h2>
+          <button id="addProfile" type="button">Add profile</button>
+        </div>
+        <div id="profiles"></div>
+      </section>
+
+      <section>
+        <h2>Saved Applications</h2>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Company</th><th>Role</th><th>Score</th><th>Status</th></tr>
+          </thead>
+          <tbody id="applications"></tbody>
+        </table>
+      </section>
+      <p id="status"></p>
+    </main>
+    <script src="../shared/defaults.js"></script>
+    <script src="../shared/resumeParser.js"></script>
+    <script src="../shared/llmAssistant.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
